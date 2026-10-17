@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#15283b">
+  <meta name="description" content="鳩特獎學金榮譽照製作工具。選取照片、填入姓名與獎項，直接在裝置內合成並下載。">
+  <meta name="referrer" content="no-referrer">
+  <title>鳩特・榮譽照工作室</title>
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./style.css">
+  <script type="module" src="./app.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <a href="./" class="wordmark"><span class="brand-icon" aria-hidden="true">✦</span><span>鳩特<span class="brand-sub">榮譽照工作室</span></span></a>
+    <span class="privacy"><span></span> 照片僅在此裝置處理</span>
+  </header>
+  <main>
+    <section class="intro"><div class="eyebrow">CELEBRATE EVERY ACHIEVEMENT</div><h1>讓努力，值得被看見。</h1><p>放上真實的頒獎瞬間，為每一份成就留下漂亮的紀念。</p></section>
+    <div class="workspace">
+      <form id="editor" class="editor" novalidate>
+        <section class="panel">
+          <div class="section-title"><span class="step">01</span><h2>選一張頒獎照</h2><span id="photoState" class="meta">尚未選取</span></div>
+          <label class="upload" id="dropZone"><input id="photo" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif"><span class="upload-icon" aria-hidden="true">＋</span><strong id="uploadTitle">選取照片，或拖曳到這裡</strong><small id="uploadInfo">建議使用 JPG、PNG 或 WebP</small></label>
+          <div id="photoControls" hidden>
+            <div class="range-label"><label for="zoom">照片縮放</label><output id="zoomValue">100%</output></div><input id="zoom" type="range" min="1" max="3" step="0.01" value="1">
+            <div class="photo-actions"><button type="button" id="resetPhoto" class="text-button">重設構圖</button><small>在預覽照片上拖曳調整位置</small></div>
+          </div>
+        </section>
+        <section class="panel">
+          <div class="section-title"><span class="step">02</span><h2>填寫這份成就</h2></div>
+          <label for="student">學生姓名</label><input id="student" maxlength="24" autocomplete="off" placeholder="例如：王小明">
+          <label class="check"><input id="maskName" type="checkbox">隱藏姓名中間字（王○明）</label>
+          <label for="awardType">頒獎類型</label><select id="awardType"></select>
+          <div id="subjectField"><label for="subject">科目</label><input id="subject" maxlength="12" value="數學" placeholder="例如：數學"></div>
+          <div data-field="score"><label for="score">本次分數</label><div class="unit-input"><input id="score" type="number" inputmode="decimal" min="0" max="100" step="0.1" placeholder="100"><span>分</span></div></div>
+          <div data-field="progress" hidden class="field-pair"><div><label for="previous">前次成績</label><input id="previous" type="number" inputmode="decimal" min="0" max="100" step="0.1" placeholder="例如：55"></div><div><label for="current">本次成績</label><input id="current" type="number" inputmode="decimal" min="0" max="100" step="0.1" placeholder="例如：78"></div></div>
+          <div data-field="rank" hidden class="field-pair"><div><label for="rankScope">排名範圍</label><select id="rankScope"><option value="school">校排名</option><option value="class">班排名</option></select></div><div><label for="rank">名次</label><input id="rank" type="number" inputmode="numeric" min="1" max="10" step="1" placeholder="例如：3"></div></div>
+          <div data-field="grade" hidden><label for="grade">本次等第</label><select id="grade"><option>A++</option><option>A+</option><option>A</option></select></div>
+          <div data-field="gsat" hidden><label for="level">本次級分</label><select id="level"><option value="15">15 級分</option><option value="14">14 級分</option><option value="13">13 級分</option></select></div>
+          <div data-field="custom" hidden><label for="customTitle">頒獎名目</label><textarea id="customTitle" maxlength="60" rows="2" placeholder="例如：勇於挑戰・學習精神獎"></textarea></div>
+          <p id="ruleHint" class="hint"></p><p id="awardStatus" class="award-status" role="status" aria-live="polite"></p>
+          <details class="details"><summary>調整圖片上的頒獎文字</summary><label for="headline">主要名目</label><input id="headline" maxlength="60" placeholder="由成績自動產生"><label for="awardLabel">獎項名稱</label><input id="awardLabel" maxlength="30" placeholder="例如：段考滿分獎"><button type="button" id="resetText" class="text-button">還原自動文字</button></details>
+          <details class="scheme"><summary>查看獎項門檻</summary><p>依你提供的「114 上學期獎學金制度」。圖片不顯示金額。</p><ul><li>段考高分：90～99 分、100 分。</li><li>段考進步：進步至少 20 分。</li><li>段考／會考模考名次：校排 1～10、班排 1～3。</li><li>會考模考等第：A、A+、A++。</li><li>學測模考級分：13、14、15 級分。</li><li>學測模考進步：單科進步至少 5 級分。</li></ul><p>分數制須考卷、名次制須獎狀、等第與級分制須成績單；所有申請均須申請單。此工具只製作圖片。</p></details>
+        </section>
+        <section class="panel">
+          <div class="section-title"><span class="step">03</span><h2>選擇外框與尺寸</h2></div>
+          <fieldset class="template-options"><legend class="sr-only">外框風格</legend><label class="template-option"><input name="template" type="radio" value="glory" checked><span class="swatch glory"><i>✦</i><b>榮耀金</b><small>深藍 × 香檳金</small></span></label><label class="template-option"><input name="template" type="radio" value="warm"><span class="swatch warm"><i>✦</i><b>溫暖表揚</b><small>奶油白 × 暖金</small></span></label></fieldset>
+          <label for="size">圖片尺寸</label><select id="size"><option value="portrait">IG 貼文 · 4:5（1080 × 1350）</option><option value="square">正方形 · 1:1（1080 × 1080）</option><option value="story">限時動態 · 9:16（1080 × 1920）</option></select>
+          <p class="hint">切換尺寸會重新排版。照片中的人臉與紅包，記得保留在畫面內。</p>
+        </section>
+      </form>
+      <aside class="preview-column">
+        <div class="preview-sticky"><div class="preview-heading"><span>成品預覽</span><span id="dimensions">1080 × 1350</span></div>
+          <div class="canvas-surround"><canvas id="preview" width="1080" height="1350" role="img" aria-label="頒獎照即時預覽" tabindex="0"></canvas><div id="emptyOverlay" class="empty-overlay"><span>✦</span><strong>你的下一位榮耀主角</strong><p>選取照片，開始製作表揚照</p></div></div>
+          <p class="preview-note">文字只包含姓名與頒獎名目 · 不顯示金額</p>
+          <div class="download-bar"><select id="format" aria-label="下載格式"><option value="image/jpeg">JPG</option><option value="image/png">PNG</option></select><button id="download" type="button" class="primary" disabled><span aria-hidden="true">↓</span> 下載成品</button><button id="share" type="button" class="secondary" hidden>分享</button></div>
+          <p id="exportStatus" role="status" aria-live="polite" class="export-status">請先選取照片並填寫姓名與獎項。</p>
+          <a id="saveFallback" hidden download>點此儲存圖片</a>
+        </div>
+      </aside>
+    </div>
+  </main>
+  <footer>鳩特・榮譽照工作室 <span>照片與姓名不會上傳，關閉頁面即清除。</span></footer>
+</body>
+</html>
