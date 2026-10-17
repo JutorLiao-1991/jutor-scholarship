@@ -59,8 +59,8 @@ export function evaluateAward(data) {
 export function displayName(name, mask) {
   const chars = Array.from(String(name || '').trim());
   if (!mask || chars.length < 2) return chars.join('');
-  if (chars.length === 2) return chars[0]+'○';
-  return chars[0] + '○'.repeat(chars.length-2) + chars.at(-1);
+  if (chars.length === 2) return chars[0]+'Ｏ';
+  return chars[0] + 'Ｏ'.repeat(chars.length-2) + chars.at(-1);
 }
 export function cropRect(iw, ih, box, zoom=1, x=0, y=0) {
   const scale = Math.max(box.w/iw,box.h/ih) * Math.max(1,zoom);

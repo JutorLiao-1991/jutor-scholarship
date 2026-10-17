@@ -1,4 +1,4 @@
-import {TYPES,evaluateAward,displayName,cropRect} from './awards.js';
+import {TYPES,evaluateAward,displayName,cropRect} from './awards.js?v=20261017-fullwidth';
 import {drawPoster,layout,SIZES} from './renderer.js';
 const $=id=>document.getElementById(id);
 const canvas=$('preview'), form=$('editor');

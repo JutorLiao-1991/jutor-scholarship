@@ -31,7 +31,7 @@ test('grade, GSAT and custom award validation',()=>{
   assert.equal(evaluateAward({type:'custom',customTitle:'  '}).eligible,false);
 });
 test('name masking preserves first and last characters',()=>{
-  assert.equal(displayName(' 王小明 ',true),'王○明');assert.equal(displayName('王明',true),'王○');assert.equal(displayName('歐陽小明',true),'歐○○明');assert.equal(displayName('王',true),'王');assert.equal(displayName('王小明',false),'王小明');
+  assert.equal(displayName(' 王小明 ',true),'王Ｏ明');assert.equal(displayName('王明',true),'王Ｏ');assert.equal(displayName('歐陽小明',true),'歐ＯＯ明');assert.equal(displayName('王',true),'王');assert.equal(displayName('王小明',false),'王小明');
 });
 test('crop never exposes blank edges with landscape or portrait photos',()=>{
   for(const size of Object.keys(SIZES))for(const [iw,ih] of [[1152,1536],[4032,3024],[600,2400],[2400,600]])for(const zoom of [1,1.5,3])for(const [x,y] of [[0,0],[1e6,-1e6],[-1e6,1e6]]){
@@ -51,9 +51,9 @@ function mockCanvas(){
 }
 test('both templates render at every size with only award and name text',()=>{
   for(const template of ['glory','warm'])for(const size of Object.keys(SIZES)){
-    const c=mockCanvas();drawPoster(c,{template,size,title:'數學 100 分',label:'段考滿分獎',name:'王○明',zoom:1,x:0,y:0});
+    const c=mockCanvas();drawPoster(c,{template,size,title:'數學 100 分',label:'段考滿分獎',name:'王Ｏ明',zoom:1,x:0,y:0});
     assert.equal(c.width,SIZES[size].w);assert.equal(c.height,SIZES[size].h);
-    assert.deepEqual(c.texts.map(t=>t.text),['段考滿分獎','數學 100 分','王○明']);
+    assert.deepEqual(c.texts.map(t=>t.text),['段考滿分獎','數學 100 分','王Ｏ明']);
     for(const t of c.texts){assert.ok(t.x>0&&t.x<c.width);assert.ok(t.y>0&&t.y<c.height);assert.ok(!/元|獎金|@jutor/.test(t.text));}
   }
 });
