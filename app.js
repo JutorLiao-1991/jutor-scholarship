@@ -3,7 +3,7 @@ import {drawPoster,layout,SIZES} from './renderer.js';
 const $=id=>document.getElementById(id);
 const canvas=$('preview'), form=$('editor');
 const state={template:'glory',size:'portrait',zoom:1,x:0,y:0};
-let photo=null,photoName='',loadSerial=0,loading=false,exporting=false,drag=null,frame=0,exportURL=null;
+let photo=null,loadSerial=0,loading=false,exporting=false,drag=null,frame=0,exportURL=null;
 const hint={score:'高分獎：90～99 分、100 分。',progress:'進步獎：本次比前次進步至少 20 分。',rank:'名次獎：校排 1～10 名，或班排 1～3 名。',mockRank:'名次獎：校排 1～10 名，或班排 1～3 名。',grade:'會考模考：A、A+、A++。',gsat:'學測模考：13、14、15 級分。',gsatProgress:'學測模考進步：單科進步至少 5 級分。',custom:'可自行填寫其他值得表揚的成就。'};
 for(const group of [...new Set(TYPES.map(t=>t.group))]) {const el=document.createElement('optgroup');el.label=group;for(const t of TYPES.filter(t=>t.group===group)){const o=document.createElement('option');o.value=t.id;o.textContent=t.label;el.append(o);}$('awardType').append(el);}
 function data(){return Object.fromEntries(['score','subject','previous','current','rankScope','rank','grade','level','customTitle'].map(k=>[k,$(k).value]).concat([['type',$('awardType').value]]));}
@@ -15,7 +15,6 @@ function draw(){
   state.name=displayName($('student').value,$('maskName').checked);
   state.title=$('headline').value.trim() || result.title;
   state.label=$('awardLabel').value.trim() || result.label;
-  if(state.label==='榮譽表揚' && $('awardType').value==='custom')state.label='榮譽表揚';
   drawPoster(canvas,state,photo);
   canvas.setAttribute('aria-label',photo?`頒獎照預覽：${state.name || '未填姓名'}，${state.label}，${state.title || '未填名目'}`:'請選取頒獎照片');
   $('emptyOverlay').hidden=Boolean(photo);
@@ -38,7 +37,11 @@ function typeChanged(){
   $('previous').placeholder=gsat?'例如：8':'例如：55';$('current').placeholder=gsat?'例如：13':'例如：78';
   $('headline').value='';$('awardLabel').value='';queueDraw();
 }
-function resetCrop(){state.zoom=1;state.x=0;state.y=0;$('zoom').value='1';$('zoomValue').value='100%';queueDraw();}
+function resetCrop(){
+  state.zoom=1;state.x=0;state.y=0;
+  if(photo){const b=layout(state.size).photo;const r=cropRect(photo.width || photo.naturalWidth,photo.height || photo.naturalHeight,b);state.y=-(r.h-b.h)*.14;}
+  $('zoom').value='1';$('zoomValue').value='100%';queueDraw();
+}
 async function loadPhoto(file){
   if(!file)return;
   const serial=++loadSerial;loading=true;clearDownload();$('exportStatus').textContent='正在讀取照片…';$('photoState').textContent='讀取中';draw();
@@ -57,7 +60,7 @@ async function loadPhoto(file){
     if(Math.max(iw,ih)>4096){
       const temp=document.createElement('canvas');const ratio=4096/Math.max(iw,ih);temp.width=Math.round(iw*ratio);temp.height=Math.round(ih*ratio);temp.getContext('2d').drawImage(bitmap,0,0,temp.width,temp.height);bitmap.close?.();bitmap=temp;
     }
-    photo?.close?.();photo=bitmap;photoName=file.name;resetCrop();$('photoControls').hidden=false;$('photoState').textContent='已選取';$('uploadTitle').textContent='更換照片';$('uploadInfo').textContent=file.name;
+    photo?.close?.();photo=bitmap;resetCrop();$('photoControls').hidden=false;$('photoState').textContent='已選取';$('uploadTitle').textContent='更換照片';$('uploadInfo').textContent=file.name;
   }catch(err){if(serial===loadSerial){$('photoState').textContent=photo?'已保留原照片':'讀取失敗';$('uploadInfo').textContent=/heic|heif/i.test(file.name)?'這個瀏覽器無法讀取此照片，請改用 JPG 或 PNG。':err.message;$('uploadTitle').textContent='重新選取照片';}}
   finally{if(url)URL.revokeObjectURL(url);if(serial===loadSerial){loading=false;draw();}}
 }

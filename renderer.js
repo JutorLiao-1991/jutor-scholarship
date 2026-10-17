@@ -4,10 +4,10 @@ const SERIF='"Noto Serif TC", "Songti TC", "PMingLiU", "Times New Roman", serif'
 const SANS='"Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif';
 export function layout(size) {
   const {w,h}=SIZES[size] || SIZES.portrait;
-  const bottom=size==='square'?606:size==='story'?1220:850;
+  const bottom=size==='square'?660:size==='story'?1220:850;
   return {w,h,photo:{x:24,y:24,w:w-48,h:bottom-24},bottom,
-    labelY:bottom+32,title:{x:108,y:bottom+85,w:864,h:size==='square'?172:210},
-    nameY:h-140};
+    labelY:bottom+32,title:{x:108,y:bottom+(size==='story'?110:85),w:864,h:size==='square'?130:size==='story'?300:210},
+    nameY:h-(size==='story'?200:140)};
 }
 function gold(ctx,x,y,w,h,warm=false) {
   const g=ctx.createLinearGradient(x,y,x+w,y+h);
@@ -39,7 +39,8 @@ export function wrapText(ctx,text,maxWidth) {
   for(const ch of Array.from(String(text))) {if(ch==='\n'){lines.push(current);current='';continue;}if(current && ctx.measureText(current+ch).width>maxWidth){lines.push(current.trimEnd());current=ch.trimStart();}else current+=ch;}
   if(current)lines.push(current.trimEnd());return lines.length?lines:[''];
 }
-export function fitText(ctx,text,box,{max=100,min=18,maxLines=2,family=SERIF,weight=700}={}) {
+export function fitText(ctx,text,box,{max=100,min=14,maxLines=2,family=SERIF,weight=700}={}) {
+  text=String(text).replace(/\s+/g,' ').trim();
   let size=max,lines;
   for(;size>=min;size-=2){ctx.font=`${weight} ${size}px ${family}`;lines=wrapText(ctx,text,box.w);if(lines.length<=maxLines && lines.length*size*1.25<=box.h)break;}
   if(size<min){size=min;ctx.font=`${weight} ${size}px ${family}`;lines=wrapText(ctx,text,box.w);}
