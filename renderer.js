@@ -1,4 +1,4 @@
-import {cropRect} from './awards.js';
+import {cropRect} from './awards.js?v=20261103-touch';
 export const SIZES={portrait:{w:1080,h:1350},square:{w:1080,h:1080},story:{w:1080,h:1920}};
 const SERIF='"Noto Serif TC", "Songti TC", "PMingLiU", "Times New Roman", serif';
 const SANS='"Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif';
@@ -6,7 +6,7 @@ export function layout(size) {
   const {w,h}=SIZES[size] || SIZES.portrait;
   const bottom=size==='square'?660:size==='story'?1220:850;
   return {w,h,photo:{x:24,y:24,w:w-48,h:bottom-24},bottom,
-    labelY:bottom+32,title:{x:108,y:bottom+(size==='story'?110:85),w:864,h:size==='square'?130:size==='story'?300:210},
+    labelY:bottom+32,title:{x:270,y:bottom+(size==='story'?110:85),w:540,h:size==='square'?130:size==='story'?300:210},
     nameY:h-(size==='story'?200:140)};
 }
 function gold(ctx,x,y,w,h,warm=false) {
@@ -74,8 +74,8 @@ export function drawPoster(canvas,state,image=null) {
   ctx.save();ctx.fillStyle=gold(ctx,270,l.labelY-29,540,58,warm);ctx.strokeStyle=warm?'#b98b40':'#e4c27a';ctx.lineWidth=2;ctx.beginPath();ctx.roundRect(270,l.labelY-29,540,58,28);ctx.fill();ctx.stroke();
   textBlock(ctx,label,{x:300,y:l.labelY-23,w:480,h:46},{max:29,maxLines:1,family:SERIF},warm?'#6b421e':'#182b3c');ctx.restore();
   const leafY=l.title.y+l.title.h/2+12;
-  laurel(ctx,88,leafY,1,goldFill,.7);laurel(ctx,w-88,leafY,-1,goldFill,.7);
-  textBlock(ctx,state.title || '頒獎名目',l.title,{max:state.size==='square'?88:104,maxLines:2},warm?'#8a5724':goldFill);
+  laurel(ctx,246,leafY,1,goldFill,.7);laurel(ctx,w-246,leafY,-1,goldFill,.7);
+  textBlock(ctx,state.title || '頒獎名目',l.title,{max:state.size==='square'?88:104,maxLines:Array.from(state.title || '頒獎名目').length<=12?1:2},warm?'#8a5724':goldFill);
   ctx.strokeStyle=warm?'#d5b273':'#b58d48';ctx.lineWidth=1;ctx.beginPath();ctx.roundRect(190,l.nameY-39,700,78,39);ctx.stroke();
   textBlock(ctx,state.name || '學生姓名',{x:215,y:l.nameY-32,w:650,h:64},{max:46,maxLines:1},ink);
   diamond(ctx,147,l.nameY,6,goldFill);diamond(ctx,w-147,l.nameY,6,goldFill);

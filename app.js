@@ -1,9 +1,10 @@
-import {TYPES,evaluateAward,displayName,cropRect} from './awards.js?v=20261017-fullwidth';
-import {drawPoster,layout,SIZES} from './renderer.js';
+import {TYPES,evaluateAward,displayName,cropRect} from './awards.js?v=20261103-touch';
+import {drawPoster,layout,SIZES} from './renderer.js?v=20261103-touch';
+import {gestureTransform} from './gestures.js?v=20261103-touch';
 const $=id=>document.getElementById(id);
 const canvas=$('preview'), form=$('editor');
 const state={template:'glory',size:'portrait',zoom:1,x:0,y:0};
-let photo=null,loadSerial=0,loading=false,exporting=false,drag=null,frame=0,exportURL=null;
+let photo=null,loadSerial=0,loading=false,exporting=false,frame=0,exportURL=null;
 const hint={score:'高分獎：90～99 分、100 分。',progress:'進步獎：本次比前次進步至少 20 分。',rank:'名次獎：校排 1～10 名，或班排 1～3 名。',mockRank:'名次獎：校排 1～10 名，或班排 1～3 名。',grade:'會考模考：A、A+、A++。',gsat:'學測模考：13、14、15 級分。',gsatProgress:'學測模考進步：單科進步至少 5 級分。',custom:'可自行填寫其他值得表揚的成就。'};
 for(const group of [...new Set(TYPES.map(t=>t.group))]) {const el=document.createElement('optgroup');el.label=group;for(const t of TYPES.filter(t=>t.group===group)){const o=document.createElement('option');o.value=t.id;o.textContent=t.label;el.append(o);}$('awardType').append(el);}
 function data(){return Object.fromEntries(['score','subject','previous','current','rankScope','rank','grade','level','customTitle'].map(k=>[k,$(k).value]).concat([['type',$('awardType').value]]));}
@@ -17,7 +18,8 @@ function draw(){
   state.label=$('awardLabel').value.trim() || result.label;
   drawPoster(canvas,state,photo);
   canvas.setAttribute('aria-label',photo?`頒獎照預覽：${state.name || '未填姓名'}，${state.label}，${state.title || '未填名目'}`:'請選取頒獎照片');
-  $('emptyOverlay').hidden=Boolean(photo);
+  $('dropZone').hidden=Boolean(photo);
+  $('photoPreview').hidden=!photo;
   const size=SIZES[state.size];$('dimensions').textContent=`${size.w} × ${size.h}`;
   canvas.style.setProperty('--preview-width',`${74*size.w/size.h}vh`);
   $('awardStatus').textContent=result.eligible?`✓ ${result.label} · ${result.title}`:result.message;
@@ -38,6 +40,7 @@ function typeChanged(){
   $('headline').value='';$('awardLabel').value='';queueDraw();
 }
 function resetCrop(){
+  cancelGesture();
   state.zoom=1;state.x=0;state.y=0;
   if(photo){const b=layout(state.size).photo;const r=cropRect(photo.width || photo.naturalWidth,photo.height || photo.naturalHeight,b);state.y=-(r.h-b.h)*.14;}
   $('zoom').value='1';$('zoomValue').value='100%';queueDraw();
@@ -83,13 +86,33 @@ form.addEventListener('input',e=>{
 });
 $('awardType').addEventListener('change',typeChanged);
 $('rankScope').addEventListener('change',()=>{$('rank').max=$('rankScope').value==='school'?'10':'3';});
+$('changePhoto').addEventListener('click',()=>$('photo').click());
 $('resetPhoto').addEventListener('click',()=>{clearDownload();resetCrop();});
 $('resetText').addEventListener('click',()=>{$('headline').value='';$('awardLabel').value='';clearDownload();queueDraw();});
 function clampPosition(){if(!photo)return;const box=layout(state.size).photo;const r=cropRect(photo.width || photo.naturalWidth,photo.height || photo.naturalHeight,box,state.zoom,state.x,state.y);state.x=r.x-box.x-(box.w-r.w)/2;state.y=r.y-box.y-(box.h-r.h)/2;}
 function point(e){const rect=canvas.getBoundingClientRect();return {x:(e.clientX-rect.left)*canvas.width/rect.width,y:(e.clientY-rect.top)*canvas.height/rect.height};}
-canvas.addEventListener('pointerdown',e=>{if(!photo||loading)return;const p=point(e),b=layout(state.size).photo;if(p.x<b.x||p.x>b.x+b.w||p.y<b.y||p.y>b.y+b.h)return;drag={id:e.pointerId,...p};canvas.setPointerCapture(e.pointerId);canvas.classList.add('dragging');e.preventDefault();});
-canvas.addEventListener('pointermove',e=>{if(!drag||drag.id!==e.pointerId)return;const p=point(e);state.x+=p.x-drag.x;state.y+=p.y-drag.y;drag={id:e.pointerId,...p};clampPosition();clearDownload();queueDraw();});
-for(const evt of ['pointerup','pointercancel','lostpointercapture'])canvas.addEventListener(evt,()=>{drag=null;canvas.classList.remove('dragging');});
+const pointers=new Map();
+function cancelGesture(){
+  const ids=[...pointers.keys()];pointers.clear();
+  for(const id of ids)if(canvas.hasPointerCapture(id))canvas.releasePointerCapture(id);
+  canvas.classList.remove('dragging');
+}
+canvas.addEventListener('pointerdown',e=>{
+  if(!photo||loading||exporting||pointers.size>=2||(e.pointerType==='mouse'&&e.button!==0))return;
+  const p=point(e),b=layout(state.size).photo;
+  if(!pointers.size&&(p.x<b.x||p.x>b.x+b.w||p.y<b.y||p.y>b.y+b.h))return;
+  e.preventDefault();pointers.set(e.pointerId,p);canvas.setPointerCapture(e.pointerId);canvas.classList.add('dragging');
+});
+canvas.addEventListener('pointermove',e=>{
+  if(!pointers.has(e.pointerId))return;
+  e.preventDefault();const previous=[...pointers.values()];pointers.set(e.pointerId,point(e));
+  Object.assign(state,gestureTransform(previous,[...pointers.values()],state,layout(state.size).photo));
+  clampPosition();$('zoom').value=String(state.zoom);$('zoomValue').value=`${Math.round(state.zoom*100)}%`;clearDownload();queueDraw();
+});
+for(const evt of ['pointerup','pointercancel','lostpointercapture'])canvas.addEventListener(evt,e=>{
+  pointers.delete(e.pointerId);if(!pointers.size)canvas.classList.remove('dragging');
+});
+window.addEventListener('blur',cancelGesture);
 canvas.addEventListener('keydown',e=>{if(!photo||!['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key))return;e.preventDefault();state.x+=(e.key==='ArrowLeft'?-1:e.key==='ArrowRight'?1:0)*(e.shiftKey?40:10);state.y+=(e.key==='ArrowUp'?-1:e.key==='ArrowDown'?1:0)*(e.shiftKey?40:10);clampPosition();clearDownload();queueDraw();});
 function fileName(){const ext=$('format').value==='image/png'?'png':'jpg';const clean=s=>s.replace(/[\x00-\x1f\\/:*?"<>|]/g,'').slice(0,40);return `${clean(state.name)}_${clean(state.title)}_${state.template==='warm'?'溫暖表揚':'榮耀金'}.${ext}`;}
 function makeBlob(){draw();return new Promise((resolve,reject)=>{try{canvas.toBlob(blob=>blob?resolve(blob):reject(new Error('圖片輸出失敗，請再試一次。')),$('format').value,.95);}catch(e){reject(e);}});}
@@ -109,5 +132,5 @@ async function exportImage(share=false){
 }
 $('download').addEventListener('click',()=>exportImage());$('share').addEventListener('click',()=>exportImage(true));
 $('format').addEventListener('change',clearDownload);
-window.addEventListener('pagehide',()=>{clearDownload();});
+window.addEventListener('pagehide',()=>{cancelGesture();clearDownload();});
 typeChanged();draw();

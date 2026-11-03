@@ -8,8 +8,8 @@
   <meta name="referrer" content="no-referrer">
   <title>鳩特・榮譽照工作室</title>
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./style.css">
-  <script type="module" src="./app.js?v=20261017-fullwidth"></script>
+  <link rel="stylesheet" href="./style.css?v=20261103-touch">
+  <script type="module" src="./app.js?v=20261103-touch"></script>
 </head>
 <body>
   <header class="topbar">
@@ -23,15 +23,20 @@
         <section class="panel">
           <div class="section-title"><span class="step">01</span><h2>選一張頒獎照</h2><span id="photoState" class="meta">尚未選取</span></div>
           <label class="upload" id="dropZone"><input id="photo" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif"><span class="upload-icon" aria-hidden="true">＋</span><strong id="uploadTitle">選取照片，或拖曳到這裡</strong><small id="uploadInfo">建議使用 JPG、PNG 或 WebP</small></label>
+          <div id="photoPreview" hidden>
+            <div class="preview-heading"><span>成品預覽</span><span id="dimensions">1080 × 1350</span></div>
+            <div class="canvas-surround"><canvas id="preview" width="1080" height="1350" role="img" aria-label="頒獎照即時預覽" aria-describedby="gestureHint" tabindex="0"></canvas></div>
+            <p id="gestureHint" class="preview-note">單指拖曳照片 · 兩指縮放 · 也可使用下方滑桿</p>
+          </div>
           <div id="photoControls" hidden>
             <div class="range-label"><label for="zoom">照片縮放</label><output id="zoomValue">100%</output></div><input id="zoom" type="range" min="1" max="3" step="0.01" value="1">
-            <div class="photo-actions"><button type="button" id="resetPhoto" class="text-button">重設構圖</button><small>在預覽照片上拖曳調整位置</small></div>
+            <div class="photo-actions"><button type="button" id="changePhoto" class="text-button">更換照片</button><button type="button" id="resetPhoto" class="text-button">重設構圖</button></div>
           </div>
         </section>
         <section class="panel">
           <div class="section-title"><span class="step">02</span><h2>填寫這份成就</h2></div>
           <label for="student">學生姓名</label><input id="student" maxlength="24" autocomplete="off" placeholder="例如：王小明">
-          <label class="check"><input id="maskName" type="checkbox">隱藏姓名中間字（王Ｏ明）</label>
+          <label class="check"><input id="maskName" type="checkbox" checked>隱藏姓名中間字（王Ｏ明）</label>
           <label for="awardType">頒獎類型</label><select id="awardType"></select>
           <div id="subjectField"><label for="subject">科目</label><input id="subject" maxlength="12" value="數學" placeholder="例如：數學"></div>
           <div data-field="score"><label for="score">本次分數</label><div class="unit-input"><input id="score" type="number" inputmode="decimal" min="0" max="100" step="0.1" placeholder="100"><span>分</span></div></div>
@@ -50,16 +55,13 @@
           <label for="size">圖片尺寸</label><select id="size"><option value="portrait">IG 貼文 · 4:5（1080 × 1350）</option><option value="square">正方形 · 1:1（1080 × 1080）</option><option value="story">限時動態 · 9:16（1080 × 1920）</option></select>
           <p class="hint">切換尺寸會重新排版。照片中的人臉與紅包，記得保留在畫面內。</p>
         </section>
-      </form>
-      <aside class="preview-column">
-        <div class="preview-sticky"><div class="preview-heading"><span>成品預覽</span><span id="dimensions">1080 × 1350</span></div>
-          <div class="canvas-surround"><canvas id="preview" width="1080" height="1350" role="img" aria-label="頒獎照即時預覽" tabindex="0"></canvas><div id="emptyOverlay" class="empty-overlay"><span>✦</span><strong>你的下一位榮耀主角</strong><p>選取照片，開始製作表揚照</p></div></div>
+        <section class="panel export-panel">
           <p class="preview-note">文字只包含姓名與頒獎名目 · 不顯示金額</p>
           <div class="download-bar"><select id="format" aria-label="下載格式"><option value="image/jpeg">JPG</option><option value="image/png">PNG</option></select><button id="download" type="button" class="primary" disabled><span aria-hidden="true">↓</span> 下載成品</button><button id="share" type="button" class="secondary" hidden>分享</button></div>
           <p id="exportStatus" role="status" aria-live="polite" class="export-status">請先選取照片並填寫姓名與獎項。</p>
           <a id="saveFallback" hidden download>點此儲存圖片</a>
-        </div>
-      </aside>
+        </section>
+      </form>
     </div>
   </main>
   <footer>鳩特・榮譽照工作室 <span>照片與姓名不會上傳，關閉頁面即清除。</span></footer>
